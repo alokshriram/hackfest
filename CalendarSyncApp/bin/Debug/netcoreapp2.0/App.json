@@ -1,0 +1,8 @@
+﻿{
+  "TenantId": "1a0460b8-fd4a-4cb1-9b8c-fd695de8c7e0",
+  "TokenEndPoint": "https://login.microsoftonline.com/1a0460b8-fd4a-4cb1-9b8c-fd695de8c7e0/oauth2/v2.0/token",
+  "ClientId": "8a77abdf-2f69-440e-bc87-596ba41fa100",
+  "ClientSecret": "klqrNT7$hyaKHXHP9168#*}",
+  "GraphEndPoint": "https://graph.microsoft.com/v1.0/"
+
+}

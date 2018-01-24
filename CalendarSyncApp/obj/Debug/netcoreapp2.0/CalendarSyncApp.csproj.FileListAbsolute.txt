@@ -1,0 +1,12 @@
+c:\users\alok.shriram\source\repos\CalendarSyncApp\CalendarSyncApp\bin\Debug\netcoreapp2.0\CalendarSyncApp.deps.json
+c:\users\alok.shriram\source\repos\CalendarSyncApp\CalendarSyncApp\bin\Debug\netcoreapp2.0\CalendarSyncApp.runtimeconfig.json
+c:\users\alok.shriram\source\repos\CalendarSyncApp\CalendarSyncApp\bin\Debug\netcoreapp2.0\CalendarSyncApp.runtimeconfig.dev.json
+c:\users\alok.shriram\source\repos\CalendarSyncApp\CalendarSyncApp\bin\Debug\netcoreapp2.0\CalendarSyncApp.dll
+c:\users\alok.shriram\source\repos\CalendarSyncApp\CalendarSyncApp\obj\Debug\netcoreapp2.0\CalendarSyncApp.csprojResolveAssemblyReference.cache
+c:\users\alok.shriram\source\repos\CalendarSyncApp\CalendarSyncApp\obj\Debug\netcoreapp2.0\CalendarSyncApp.csproj.CoreCompileInputs.cache
+c:\users\alok.shriram\source\repos\CalendarSyncApp\CalendarSyncApp\obj\Debug\netcoreapp2.0\CalendarSyncApp.AssemblyInfoInputs.cache
+c:\users\alok.shriram\source\repos\CalendarSyncApp\CalendarSyncApp\obj\Debug\netcoreapp2.0\CalendarSyncApp.AssemblyInfo.cs
+c:\users\alok.shriram\source\repos\CalendarSyncApp\CalendarSyncApp\bin\Debug\netcoreapp2.0\App.json
+c:\users\alok.shriram\source\repos\CalendarSyncApp\CalendarSyncApp\bin\Debug\netcoreapp2.0\CalendarSyncApp.pdb
+c:\users\alok.shriram\source\repos\CalendarSyncApp\CalendarSyncApp\obj\Debug\netcoreapp2.0\CalendarSyncApp.dll
+c:\users\alok.shriram\source\repos\CalendarSyncApp\CalendarSyncApp\obj\Debug\netcoreapp2.0\CalendarSyncApp.pdb
