@@ -4,6 +4,7 @@ using CalendarSyncApp.Rules;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using service_pulse.Repository;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +29,11 @@ namespace CalendarSyncApp
             rules.Add(new ManyMeetingRule(1));
             rules.Add(new OrganizesManyMeetings(2));
             rules.Add(new MeetingsOverLunch(4));
-            
+
+            ActivityRecommendationRepository activityRepo = new ActivityRecommendationRepository(config);
+            activityRepo.GetAllActivityTemplates();
+
+
             AppState.TenantId = config["TenantId"];
             AppState.ClientId = config["ClientId"];
             AppState.ClientSecret = config["ClientSecret"];
@@ -200,7 +205,7 @@ namespace CalendarSyncApp
                     return urs;
                 }
             }
-            return UserRecommendationState.MeetingsOverLunch;
+            return UserRecommendationState.None;
         }
 
 
@@ -219,7 +224,6 @@ namespace CalendarSyncApp
 
             HttpClient client = new HttpClient();
             HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Post,AppState.BotEndPoint);
-            //requestMessage.Headers.Add("content-type", "application/json");
             string jsonPayload = JsonConvert.SerializeObject(payload);
             requestMessage.Content = new StringContent(jsonPayload,Encoding.UTF8,"application/json");
             HttpResponseMessage response =  client.SendAsync(requestMessage).Result;
