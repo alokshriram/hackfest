@@ -20,7 +20,7 @@ namespace CalendarSyncApp.Repositories
 
         public static bool AlreadyRecommended(string user, UserRecommendationState state)
         {
-            return givenRecommendations[user].Contains(state);
+            return !givenRecommendations.ContainsKey(user) || givenRecommendations[user].Contains(state);
         }
     }
 }

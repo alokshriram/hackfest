@@ -18,7 +18,7 @@ namespace CalendarSyncApp.Rules
 
         public UserRecommendationState MatchesRule(string user, List<CalendarItem> items)
         {
-            throw new NotImplementedException();
+            return UserRecommendationState.None;
         }
     }
 }

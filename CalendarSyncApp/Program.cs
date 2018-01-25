@@ -2,11 +2,13 @@
 using CalendarSyncApp.Repositories;
 using CalendarSyncApp.Rules;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 
 namespace CalendarSyncApp
 {
@@ -32,11 +34,14 @@ namespace CalendarSyncApp
             AppState.ClientSecret = config["ClientSecret"];
             AppState.GraphEndPoint = config["GraphEndPoint"];
             AppState.TokenEndPoint = config["TokenEndPoint"];
+            AppState.BotEndPoint = config["BotEndPoint"];
             AppState.Token = GetToken();
 
             List<string> allUsers = GetAllUsersInTenant();
 
             LoadUsersCalendars(allUsers);
+
+            Console.ReadLine();
         }
 
         public static string GetToken()
@@ -125,39 +130,100 @@ namespace CalendarSyncApp
                     {
                         UserRecommendationState state = AnalyzeCalendar(user, meetingList);
                         // Call API to get recommended time
-                        GetRecommendedTimes(user, DateTime.Now, DateTime.Now.AddDays(7));
+                        Console.WriteLine($"Recommendation for user is {state} ");
+                        if (state != UserRecommendationState.None)
+                        {
+                            List<CalendarItem> items = GetRecommendedTimes(user, DateTime.Now, DateTime.Now.AddDays(7), meetingList);
+                            Console.WriteLine($"Recommendation for user is {state} ");
 
-                        // Call BOT API
+                            // Call BOT API
+                            CallBotApi(user, items, "LimeBot: Here is a recommendation");
+                        }
                     }
                 }
             }
         }
 
-        public static List<CalendarItem> GetRecommendedTimes(string user, DateTime start, DateTime end)
+        public static List<CalendarItem> GetRecommendedTimes(string user, DateTime start, DateTime end, List<CalendarItem> currentMeetings)
         {
             List<CalendarItem> suggestedTimes = new List<CalendarItem>();
-            string meetingRequestPayload = "{  \"attendees\": [    {      \"emailAddress\": {        \"address\": \"{0}\",      },      \"type\": \"Required\"    }  ],  \"timeConstraint\": {    \"timeslots\": [      {        \"start\": {          \"dateTime\": \"{1}\",          \"timeZone\": \"Pacific Standard Time\"        },       \"end\": {          \"dateTime\": \"{2}\",          \"timeZone\": \"Pacific Standard Time\"        }}    ]  },  \"meetingDuration\": \"PT15M\"}";
+            //string url = AppState.GraphEndPoint + "/users/" + user + "/findMeetingTimes";
+            //string meetingRequestPayload = "{  \"attendees\": [    {      \"emailAddress\": {        \"address\": \"{0}\",      },      \"type\": \"Required\"    }  ],  \"timeConstraint\": {    \"timeslots\": [      {        \"start\": {          \"dateTime\": \"{1}\",          \"timeZone\": \"Pacific Standard Time\"        },       \"end\": {          \"dateTime\": \"{2}\",          \"timeZone\": \"Pacific Standard Time\"        }}    ]  },  \"meetingDuration\": \"PT15M\"}";
             TimeSpan span = end.Subtract(start);
-            for(int i=0; i<3;i++)
+            for (int i = 0; i < 3; i++)
             {
-                string tempStart = start.AddDays(i+1).ToString("o");
-                string tempEnd = start.AddDays(i+2).ToString("o");
-                Console.WriteLine($"Getting recommendation for {tempStart}");
+                DateTime tempStart = start.AddDays(i).Date.AddHours(8); //Between work hours
+                DateTime tempEnd = start.AddDays(i + 1).Date.AddHours(18); //Between work hours
+                for(DateTime current =tempStart; current<=tempEnd; current.AddMinutes(30))
+                {
+                    if(!CalendarHasMeetingConflict(currentMeetings,tempStart,tempEnd))
+                    {
+                        Console.WriteLine($"Sugegsting times {current} to {current.AddMinutes(30)} ");
+                        suggestedTimes.Add(new CalendarItem { StartDate = current, EndDate = current.AddMinutes(30) });
+                        break;
+                    }
+                }
             }
- 
+
+            return suggestedTimes;
         }
 
+        public static bool CalendarHasMeetingConflict(List<CalendarItem> meetingList, DateTime start, DateTime end)
+        {
+            foreach(CalendarItem item in meetingList)
+            {
+                if((item.StartDate.ToLocalTime() <start && item.EndDate.ToLocalTime()>start) ||
+                   (item.StartDate <end && item.EndDate >end))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        /// <summary>
+        /// Ideally this comes from the FindMeetingTime APIs but that is currently not enabled for application
+        /// level scopes
+        /// </summary>
+        /// <param name="user"></param>
+        /// <param name="items"></param>
+        /// <returns></returns>
         public static  UserRecommendationState AnalyzeCalendar(string user, List<CalendarItem> items)
         {
             foreach(ICalendarRule rule in rules)
             {
                 UserRecommendationState urs = rule.MatchesRule(user, items);
-                if(urs != UserRecommendationState.None && !GivenRecommendationsStore.AlreadyRecommended(user,urs))
+                if(urs != UserRecommendationState.None 
+                    //&& !GivenRecommendationsStore.AlreadyRecommended(user,urs)
+                    )
                 {
                     return urs;
                 }
             }
             return UserRecommendationState.MeetingsOverLunch;
+        }
+
+
+        public static void CallBotApi(string user, List<CalendarItem> recommendations, string subject)
+        {
+            BotPayload payload = new BotPayload();
+            payload.UserId = user;
+            payload.Suggestions = new List<Suggestion>();
+            payload.Suggestions = recommendations.Select(a => new Suggestion
+            {
+                End = new OfficeDate { DateTime = a.EndDate.ToString("o"), Timezone = "Pacific Standard Time" },
+                Start = new OfficeDate { DateTime = a.StartDate.ToString("o"), Timezone = "Pacific Standard Time" },
+                Subject = subject
+
+            }).ToList();
+
+            HttpClient client = new HttpClient();
+            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Post,AppState.BotEndPoint);
+            //requestMessage.Headers.Add("content-type", "application/json");
+            string jsonPayload = JsonConvert.SerializeObject(payload);
+            requestMessage.Content = new StringContent(jsonPayload,Encoding.UTF8,"application/json");
+            HttpResponseMessage response =  client.SendAsync(requestMessage).Result;
+
         }
 
         private static CalendarItem ConvertToCalendarItem(JToken token)
